@@ -1,0 +1,8 @@
+
+{
+  "name": "Parth Portfolio",
+  "description": "A world-class developer portfolio with a modern Bento grid layout, high-impact typography, and interactive showcase elements.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Github, 
   Linkedin, 
@@ -9,9 +9,9 @@ import {
   Award,
   ExternalLink
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // --- Types & Interfaces ---
-
 interface ExperienceItem {
   id: number;
   role: string;
@@ -41,7 +41,6 @@ interface Certification {
 }
 
 // --- Mock Data ---
-
 const experiences: ExperienceItem[] = [
   {
     id: 1,
@@ -75,7 +74,6 @@ const experiences: ExperienceItem[] = [
   }
 ];
 
-// UPDATED: Education Data with Alipurduar added to Falakata locations
 const educationData: EducationItem[] = [
   {
     id: 1,
@@ -134,9 +132,8 @@ const certificationsData: Certification[] = [
 ];
 
 // --- Sub-Components ---
-
 const SocialLink = ({ icon: Icon, href }: { icon: any, href: string }) => (
-  <a href={href} className="text-gray-400 hover:text-gray-900 transition-colors">
+  <a href={href} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-900 transition-colors">
     <Icon size={18} />
   </a>
 );
@@ -190,8 +187,110 @@ const GitHubCalendar = () => {
   );
 };
 
-// --- Main Component ---
+// ============================================================================
+// PERFECTLY SIZED 3D COVERFLOW GALLERY (Medium Size, Right Aligned)
+// ============================================================================
+const CoverflowGallery = () => {
+  const images = [
+    "/images/image1.jpg",
+    "/images/about02.jpeg", 
+    "/images/image5.jpg"
+  ];
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, 3500); 
+    return () => clearInterval(timer);
+  }, [images.length]);
+
+  const smoothTransition = {
+    type: "spring",
+    stiffness: 150, 
+    damping: 25,    
+    mass: 1.2       
+  } as const;
+
+  return (
+    // কন্টেইনারের হাইট মাঝারি মাপে (450px থেকে 550px) রাখা হয়েছে
+    <div className="relative w-full flex items-center justify-center [perspective:1200px] mt-10 md:mt-0 h-[450px] md:h-[550px]">
+      
+      {/* ছবির সাইজ মাঝারি মাপে (w-64 থেকে w-80) রাখা হয়েছে */}
+      <div className="relative w-64 md:w-80 aspect-[3/4]" style={{ transformStyle: "preserve-3d" }}>
+        
+        <AnimatePresence initial={false}>
+          {images.map((img, index) => {
+            let offset = index - currentIndex;
+            if (offset === 2) offset = -1;
+            if (offset === -2) offset = 1;
+
+            const isCenter = offset === 0;
+            const isLeft = offset === -1;
+            const isRight = offset === 1;
+
+            // পজিশনিং একদম পারফেক্ট করা হয়েছে
+            let x: string | number = 0;
+            let rotateY = 0;
+            let z = 0;
+            let opacity = 1;
+            let scale = 1;
+            let zIndex = 10;
+
+            if (isCenter) {
+              x = 0;
+              rotateY = 0;
+              z = 50; 
+              scale = 1;
+              opacity = 1;
+              zIndex = 30;
+            } else if (isLeft) {
+              x = "-60%"; 
+              rotateY = 35; 
+              z = -80; 
+              scale = 0.85;
+              opacity = 0.6;
+              zIndex = 20;
+            } else if (isRight) {
+              x = "60%"; 
+              rotateY = -35; 
+              z = -80;
+              scale = 0.85;
+              opacity = 0.6;
+              zIndex = 20;
+            }
+
+            return (
+              <motion.div
+                key={index}
+                animate={{ x, rotateY, z, scale, opacity, zIndex }}
+                transition={smoothTransition}
+                onClick={() => setCurrentIndex(index)}
+                className="absolute inset-0 rounded-[2rem] overflow-hidden shadow-2xl cursor-pointer bg-neutral-900"
+                style={{ transformStyle: "preserve-3d" }}
+              >
+                <img 
+                  src={img} 
+                  alt="Gallery" 
+                  onError={(e) => e.currentTarget.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000&auto=format&fit=crop'}
+                  className="w-full h-full object-cover grayscale-[10%] contrast-[1.05]" 
+                />
+                {!isCenter && (
+                  <div className="absolute inset-0 bg-black/30 transition-opacity duration-500" />
+                )}
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+
+      </div>
+    </div>
+  );
+};
+
+
+// --- Main Component ---
 export default function AboutPage() {
   return (
     <div className="bg-[#FDFDFD] overflow-x-hidden selection:bg-purple-100 selection:text-purple-900 font-sans text-neutral-900">
@@ -211,9 +310,11 @@ export default function AboutPage() {
 
       <main className="max-w-7xl mx-auto px-6 md:px-12">
         
-        {/* Intro Section */}
-        <section className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center mb-32">
-          <div className="md:col-span-6 space-y-8">
+        {/* Intro Section with Adjusted Layout */}
+        <section className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 items-center mb-32">
+          
+          {/* Text Left Side (7 কলাম জায়গা দেওয়া হয়েছে এবং ডানদিকে প্যাডিং বাড়ানো হয়েছে) */}
+          <div className="md:col-span-7 space-y-8 order-2 md:order-1 z-10 relative pr-4 lg:pr-12">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-gray-900">
               Nice to meet you. I'm <span className="font-serif italic text-fuchsia-500 font-medium">Sourav</span>
             </h2>
@@ -231,25 +332,17 @@ export default function AboutPage() {
             </div>
 
             <div className="flex gap-4 pt-4">
-              <SocialLink icon={Linkedin} href="#" />
-              <SocialLink icon={Github} href="#" />
-              <SocialLink icon={Twitter} href="#" />
-            </div>
-
-          </div>
-
-          <div className="md:col-span-6 relative flex justify-center md:justify-end">
-            <div className="relative w-full max-w-md aspect-[4/5]">
-               <div className="absolute inset-0 bg-blue-900 rounded-[2rem] translate-x-4 translate-y-4 opacity-10"></div>
-               <img 
-                src="/images/about01.png" 
-                alt="Sourav Louha" 
-                className="w-full h-full object-cover rounded-[2rem] shadow-2xl relative z-10 grayscale-[10%] contrast-[1.05]"
-               />
-               <div className="absolute -top-6 -right-6 w-12 h-12 bg-purple-100 rounded-full blur-xl z-0"></div>
-               <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-blue-100 rounded-full blur-xl z-0"></div>
+              <SocialLink icon={Linkedin} href="https://www.linkedin.com/in/sourav-louha-703953249/" />
+              <SocialLink icon={Github} href="https://github.com/souravlouha" />
+              <SocialLink icon={Twitter} href="https://x.com/iamsouravn" />
             </div>
           </div>
+
+          {/* 3D Gallery Right Side (5 কলাম জায়গা দেওয়া হয়েছে এবং একদম ডানদিকে চাপানো হয়েছে) */}
+          <div className="md:col-span-5 relative flex justify-end w-full order-1 md:order-2 pl-4 lg:pl-10">
+            <CoverflowGallery />
+          </div>
+
         </section>
 
         {/* Experience Section */}
